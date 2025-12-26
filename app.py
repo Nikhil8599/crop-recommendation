@@ -2,10 +2,6 @@ import numpy as np
 import os
 from flask import Flask, request, render_template, jsonify
 import pickle
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # Initialize Flask app
 flask_app = Flask(__name__)
