@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Recommendation System</title>
+    <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-seedling"></i> Smart Crop Recommender</h1>
+            <p class="subtitle">AI-powered crop recommendation based on soil and weather conditions</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2><i class="fas fa-calculator"></i> Enter Soil & Weather Parameters</h2>
+
+                <form action="{{ url_for('predict') }}" method="post" id="prediction-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="Nitrogen"><i class="fas fa-atom"></i> Nitrogen (N) ppm</label>
+                            <input type="number" name="Nitrogen" placeholder="e.g., 90" required step="0.1" min="0" max="200">
+                            <small>Amount of Nitrogen in soil</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Phosphorus"><i class="fas fa-fire"></i> Phosphorus (P) ppm</label>
+                            <input type="number" name="Phosphorus" placeholder="e.g., 42" required step="0.1" min="0" max="200">
+                            <small>Amount of Phosphorus in soil</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Potassium"><i class="fas fa-bolt"></i> Potassium (K) ppm</label>
+                            <input type="number" name="Potassium" placeholder="e.g., 43" required step="0.1" min="0" max="200">
+                            <small>Amount of Potassium in soil</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Temperature"><i class="fas fa-thermometer-half"></i> Temperature (°C)</label>
+                            <input type="number" name="Temperature" placeholder="e.g., 20.8" required step="0.1" min="-10" max="50">
+                            <small>Average temperature</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Humidity"><i class="fas fa-tint"></i> Humidity (%)</label>
+                            <input type="number" name="Humidity" placeholder="e.g., 82" required step="0.1" min="0" max="100">
+                            <small>Relative humidity percentage</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pH"><i class="fas fa-vial"></i> pH Level</label>
+                            <input type="number" name="pH" placeholder="e.g., 6.5" required step="0.1" min="0" max="14">
+                            <small>Soil pH value (0-14)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Rainfall"><i class="fas fa-cloud-rain"></i> Rainfall (mm)</label>
+                            <input type="number" name="Rainfall" placeholder="e.g., 202" required step="0.1" min="0" max="500">
+                            <small>Annual rainfall in mm</small>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-predict">
+                            <i class="fas fa-magic"></i> Recommend Crop
+                        </button>
+                        <button type="reset" class="btn-reset">
+                            <i class="fas fa-redo"></i> Reset Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {% if show_results %}
+            <div class="card result-card">
+                <h2><i class="fas fa-chart-line"></i> Recommendation Results</h2>
+
+                <div class="result-main">
+                    <div class="primary-result">
+                        <i class="fas fa-trophy"></i>
+                        <h3>{{ prediction_text }}</h3>
+                    </div>
+
+                    {% if top_crops %}
+                    <div class="alternative-crops">
+                        <h4><i class="fas fa-list-ol"></i> Alternative Crops:</h4>
+                        <div class="crop-list">
+                            {% for crop, prob in top_crops %}
+                            <div class="crop-item">
+                                <span class="crop-name">{{ crop }}</span>
+                                <span class="crop-prob">{{ "%.1f"|format(prob*100) }}%</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="result-actions">
+                    <button onclick="window.location.href='/'" class="btn-new">
+                        <i class="fas fa-plus-circle"></i> New Prediction
+                    </button>
+                    <button onclick="shareResult()" class="btn-share">
+                        <i class="fas fa-share-alt"></i> Share Result
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="info-cards">
+                <div class="info-card">
+                    <i class="fas fa-robot"></i>
+                    <h3>AI-Powered</h3>
+                    <p>Uses machine learning trained on 2200+ samples</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-leaf"></i>
+                    <h3>22 Crops</h3>
+                    <p>Recommends from 22 different crop types</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Real-time</h3>
+                    <p>Instant predictions based on your inputs</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Crop Recommendation System v1.0 • Made with <i class="fas fa-heart"></i> for Farmers</p>
+            <div class="footer-links">
+                <a href="#"><i class="fab fa-github"></i> GitHub</a>
+                <a href="#"><i class="fas fa-book"></i> Documentation</a>
+                <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function shareResult() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Crop Recommendation',
+                    text: 'Check out my crop recommendation!',
+                    url: window.location.href
+                });
+            } else {
+                alert('Share URL: ' + window.location.href);
+            }
+        }
+
+        // Form validation
+        document.getElementById('prediction-form').addEventListener('submit', function(e) {
+            const inputs = this.querySelectorAll('input[type="number"]');
+            let isValid = true;
+
+            inputs.forEach(input => {
+                if (!input.value) {
+                    input.style.borderColor = 'red';
+                    isValid = false;
+                } else {
+                    input.style.borderColor = '';
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill all fields with valid numbers');
+            }
+        });
+    </script>
+</body>
+</html>
