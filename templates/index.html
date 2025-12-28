@@ -11,6 +11,40 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
+    <div class="background-layer"></div>
+    <div id="shareModal" class="share-modal">
+        <div class="share-modal-content">
+            <div class="share-modal-header">
+                <h3><i class="fas fa-share-alt"></i> Share Prediction Result</h3>
+                <button class="close-modal" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="share-modal-body">
+                <p>Share your crop recommendation on:</p>
+                <div class="share-platforms">
+                    <button class="share-platform-btn" onclick="shareOnWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                    <button class="share-platform-btn" onclick="shareOnTwitter()">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </button>
+                    <button class="share-platform-btn" onclick="copyToClipboard()">
+                        <i class="fas fa-copy"></i> Copy Link
+                    </button>
+                    <button class="share-platform-btn" onclick="shareViaEmail()">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                </div>
+                <div class="share-preview">
+                    <h4>Preview:</h4>
+                    <div class="preview-content" id="sharePreview"></div>
+                </div>
+            </div>
+            <div class="share-modal-footer">
+                <button class="btn-cancel" onclick="closeShareModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="container">
         <header>
             <h1><i class="fas fa-seedling"></i> Smart Crop Recommender</h1>
@@ -84,7 +118,7 @@
                 <div class="result-main">
                     <div class="primary-result">
                         <i class="fas fa-trophy"></i>
-                        <h3>{{ prediction_text }}</h3>
+                        <h3 id="predictionText">{{ prediction_text }}</h3>
                     </div>
 
                     {% if top_crops %}
@@ -106,7 +140,7 @@
                     <button onclick="window.location.href='/'" class="btn-new">
                         <i class="fas fa-plus-circle"></i> New Prediction
                     </button>
-                    <button onclick="shareResult()" class="btn-share">
+                    <button onclick="openShareModal()" class="btn-share">
                         <i class="fas fa-share-alt"></i> Share Result
                     </button>
                 </div>
@@ -133,29 +167,90 @@
         </main>
 
         <footer>
-            <p>Crop Recommendation System v1.0 • Made with <i class="fas fa-heart"></i> for Farmers</p>
+            <p>Crop Recommendation System v1.0 • Made with <i class="fas fa-heart"></i> by Nikhil for Farmers</p>
             <div class="footer-links">
-                <a href="#"><i class="fab fa-github"></i> GitHub</a>
-                <a href="#"><i class="fas fa-book"></i> Documentation</a>
-                <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+                <a href="https://github.com/Nikhil8599" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="https://www.linkedin.com/in/nikhil-kumar-jha-800070319/" target="_blank">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+                <a href="mailto:nkjha197410@gmail.com">
+                    <i class="fas fa-envelope"></i> Contact
+                </a>
             </div>
         </footer>
     </div>
 
     <script>
-        function shareResult() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Crop Recommendation',
-                    text: 'Check out my crop recommendation!',
-                    url: window.location.href
-                });
-            } else {
-                alert('Share URL: ' + window.location.href);
+       
+        function openShareModal() {
+            const modal = document.getElementById('shareModal');
+            const predictionText = document.getElementById('predictionText').textContent;
+            const preview = document.getElementById('sharePreview');
+            
+            preview.innerHTML = `
+                <p><strong>${predictionText}</strong></p>
+                <p>Shared from Smart Crop Recommender</p>
+                <small>${window.location.href}</small>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        function shareOnWhatsApp() {
+            const predictionText = document.getElementById('predictionText').textContent;
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(`Check out my crop recommendation: ${predictionText}\n\nFrom: Smart Crop Recommender\n${window.location.href}`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+
+        function shareOnTwitter() {
+            const predictionText = document.getElementById('predictionText').textContent;
+            const text = encodeURIComponent(`My crop recommendation: ${predictionText}`);
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+        }
+
+        function copyToClipboard() {
+            const predictionText = document.getElementById('predictionText').textContent;
+            const textToCopy = `${predictionText}\n\nShared from Smart Crop Recommender\n${window.location.href}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Result copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        function shareViaEmail() {
+            const predictionText = document.getElementById('predictionText').textContent;
+            const subject = encodeURIComponent('My Crop Recommendation Result');
+            const body = encodeURIComponent(
+                `Check out my crop recommendation:\n\n${predictionText}\n\n` +
+                `From: Smart Crop Recommender\n${window.location.href}`
+            );
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('shareModal');
+            if (event.target === modal) {
+                closeShareModal();
             }
         }
 
-        // Form validation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeShareModal();
+            }
+        });
+
         document.getElementById('prediction-form').addEventListener('submit', function(e) {
             const inputs = this.querySelectorAll('input[type="number"]');
             let isValid = true;
@@ -172,6 +267,16 @@
             if (!isValid) {
                 e.preventDefault();
                 alert('Please fill all fields with valid numbers');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const predictionText = document.getElementById('predictionText');
+            if (predictionText) {
+                let text = predictionText.textContent;
+                text = text.replace(/^[^\w\s]*\s*/, '');
+                text = text.charAt(0).toUpperCase() + text.slice(1);
+                predictionText.textContent = text;
             }
         });
     </script>
